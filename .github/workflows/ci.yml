@@ -19,9 +19,6 @@ permissions:
 
 jobs:
   windows:
-    # The private development mirror does not spend Actions minutes.
-    if: github.repository == 'Villagers654/Venture'
     uses: ./.github/workflows/windows.yml
   linux:
-    if: github.repository == 'Villagers654/Venture'
     uses: ./.github/workflows/linux.yml
