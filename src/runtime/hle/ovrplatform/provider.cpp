@@ -6,6 +6,7 @@
 #include <fstream>
 #include <mutex>
 #include <optional>
+#include <random>
 #include <nlohmann/json.hpp>
 #include <stdexcept>
 
@@ -511,6 +512,104 @@ class OwnedLibrary final : public Provider {
   std::once_flag cache_once_;
   std::unique_ptr<IapCache> cache_;
 };
+// A launch with no Meta account ("local"): the game runs with an offline viewer.
+// The identity and entitlement answers a store game needs in order to start are
+// local; a call that genuinely needs Meta stays an explicit unsupported error
+// rather than a fabricated Meta response or a sign-in failure.
+class Local final : public Provider {
+ public:
+  explicit Local(AppIdentity app) : app_(std::move(app)) {}
+  Error prepare() override {
+    // An import may carry no Meta app or binary id; what it does carry must be
+    // well formed, and the package and version always identify the launch.
+    if (app_.package.empty() || app_.version_code <= 0 ||
+        (!app_.app_id.empty() && !valid_id(app_.app_id)) ||
+        (!app_.binary_id.empty() && !valid_id(app_.binary_id)))
+      return failure(ErrorCode::identity_mismatch);
+    std::lock_guard lock(mutex_);
+    if (ready_) return {};
+    user_.id = local_user_id(app_.package);
+    user_.alias = "Player";
+    user_.display_name = "Player";
+    std::random_device random;
+    constexpr char hex[] = "0123456789abcdef";
+    nonce_.clear();
+    for (unsigned i = 0; i < 32; ++i) nonce_ += hex[random() & 15];
+    token_ = "local." + nonce_;
+    ready_ = true;
+    log::info("ovrplatform", "Running {} with a local viewer and no Meta account",
+              app_.package);
+    return {};
+  }
+  void declare_app_id(std::string_view id) override {
+    std::lock_guard lock(mutex_);
+    app_.app_id = std::string(id);
+  }
+  Result entitlement(std::stop_token stop) override {
+    if (stop.stop_requested()) return {failure(ErrorCode::cancelled)};
+    std::lock_guard lock(mutex_);
+    if (!ready_) return {failure(ErrorCode::uninitialized)};
+    return {};
+  }
+  Result logged_in_user(std::stop_token stop) override {
+    if (stop.stop_requested()) return {failure(ErrorCode::cancelled)};
+    std::lock_guard lock(mutex_);
+    if (!ready_) return {failure(ErrorCode::uninitialized)};
+    return {{}, user_, {}};
+  }
+  Result access_token(std::stop_token stop) override {
+    if (stop.stop_requested()) return {failure(ErrorCode::cancelled)};
+    std::lock_guard lock(mutex_);
+    if (!ready_) return {failure(ErrorCode::uninitialized)};
+    return {{}, user_, token_};
+  }
+  Result user_proof(std::stop_token stop) override {
+    if (stop.stop_requested()) return {failure(ErrorCode::cancelled)};
+    std::lock_guard lock(mutex_);
+    if (!ready_) return {failure(ErrorCode::uninitialized)};
+    return {{}, {}, nonce_};
+  }
+  Result heartbeat(std::string_view, std::stop_token stop) override {
+    if (stop.stop_requested()) return {failure(ErrorCode::cancelled)};
+    std::lock_guard lock(mutex_);
+    if (!ready_) return {failure(ErrorCode::uninitialized)};
+    // Presence is not sent anywhere without an account; a long interval keeps
+    // the session from re-asking often.
+    return {{}, {}, "300"};
+  }
+  Result service(std::string_view name, const RequestArgs& args,
+                 std::stop_token stop) override {
+    if (args.error) return {args.error};
+    if (stop.stop_requested()) return {failure(ErrorCode::cancelled)};
+    std::lock_guard lock(mutex_);
+    if (!ready_) return {failure(ErrorCode::uninitialized)};
+    // The viewer is this offline user; nothing leaves the machine.
+    if (name == "ovr_User_Get" && args.values.size() == 1) {
+      const auto* requested = std::get_if<std::uint64_t>(&args.values.front());
+      if (!requested || *requested != user_.id)
+        return {failure(ErrorCode::invalid_argument)};
+      return {{}, user_, {}, user_model(user_.id, user_.alias, user_.display_name)};
+    }
+    return {unsupported_operation(name)};
+  }
+
+ private:
+  // Stable across launches: a game keys its local save data by the platform
+  // user id, and it stays in the 20-digit range of a Meta app-scoped id.
+  static std::uint64_t local_user_id(std::string_view package) {
+    std::uint64_t hash = 1469598103934665603ull;
+    for (char c : package) {
+      hash ^= static_cast<unsigned char>(c);
+      hash *= 1099511628211ull;
+    }
+    return 1000000000000000000ull + hash % 9000000000000000000ull;
+  }
+  AppIdentity app_;
+  User user_;
+  std::string token_, nonce_;
+  bool ready_ = false;
+  std::mutex mutex_;
+};
 }  // namespace
 
 Error failure(ErrorCode code) {
@@ -586,6 +685,9 @@ AppIdentity read_app_identity(const std::filesystem::path& plan, std::string_vie
       app.package != package || app.version_code <= 0 || app.version_code != version)
     throw std::runtime_error("Platform launch plan does not match the APK");
   return app;
+}
+std::shared_ptr<Provider> local_provider(AppIdentity app) {
+  return std::make_shared<Local>(std::move(app));
 }
 std::shared_ptr<Provider> owned_library_provider(
     AppIdentity app, std::shared_ptr<SecretStore> store,

@@ -143,6 +143,10 @@ class Provider {
     return {0, {}, failure(ErrorCode::unsupported)};
   }
 };
+// A launch with no Meta account: a local viewer, a local entitlement answer and
+// no network. Services that genuinely need Meta report unsupported instead of a
+// fabricated answer or a sign-in error.
+std::shared_ptr<Provider> local_provider(AppIdentity);
 std::shared_ptr<Provider> owned_library_provider(
     AppIdentity, std::shared_ptr<SecretStore>, std::shared_ptr<HttpTransport>);
 std::shared_ptr<Provider> owned_library_provider(

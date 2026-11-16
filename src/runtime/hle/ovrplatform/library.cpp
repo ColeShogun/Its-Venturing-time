@@ -17,11 +17,15 @@ std::unique_ptr<Session> make_runtime_session(
     const AppIdentity& app, const std::filesystem::path& install,
     std::shared_ptr<PipeChannel> channel) {
   auto http = meta_http_transport();
-  auto provider = channel
-      ? brokered_provider(app, process_config().account_key, channel, http)
-      : owned_library_provider(
-            app, runtime_secret_store(process_config().account_key), http);
-  if (!channel)
+  const auto account = process_config().account_key;
+  // A "local" launch has no Meta account: the game runs with an offline viewer
+  // instead of answering its platform calls with a sign-in error.
+  const bool local = account.empty() || account == "local";
+  auto provider = local
+      ? local_provider(app)
+      : channel ? brokered_provider(app, account, channel, http)
+                : owned_library_provider(app, runtime_secret_store(account), http);
+  if (!local && !channel)
     log::warn("accounts",
               "CLI credential fallback: the launching account's profile token is "
               "readable by game code. Use the launcher for credential isolation.");
