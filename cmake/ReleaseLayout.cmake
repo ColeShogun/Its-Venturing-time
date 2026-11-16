@@ -28,6 +28,9 @@ if(TARGET venture AND TARGET venture-runtime)
       "${PROJECT_SOURCE_DIR}/tests/package_release_test.py"
       --build "${CMAKE_BINARY_DIR}" --angle "${VENTURE_ANGLE_ROOT}"
       --strip "${CMAKE_STRIP}" ${venture_import_tools})
-    set_tests_properties(release_layout PROPERTIES TIMEOUT 600)
+    # Packaging runs jlink, jdeps and the scanners over the whole layout. Sharing
+    # a four-core CI runner with other tests made it miss a 600 s cap, so it owns
+    # the machine and gets room for the IO instead.
+    set_tests_properties(release_layout PROPERTIES TIMEOUT 1800 RUN_SERIAL TRUE)
   endif()
 endif()

@@ -139,7 +139,9 @@ list(JOIN venture_test_split_filters "," venture_test_split_filter)
 # The JIT block list case runs only in its own test (jit_block_list): it rewrites a fixed
 # fixture directory, and two processes sharing it race each other's replaces.
 add_test(NAME venture_tests COMMAND venture_tests "--source-file-exclude=${venture_test_split_filter}" "--test-case-exclude=JIT block list*" --duration=true)
-set_tests_properties(venture_tests_core_restart PROPERTIES COST 1500)
+# The supervisor cases assert wall-clock bounds, including a five-second dump
+# helper, so they must not share the runner with other CPU-heavy tests.
+set_tests_properties(venture_tests_core_restart PROPERTIES COST 1500 RUN_SERIAL TRUE)
 # The JIT cache partition again with the register allocator's full-slot checks on (environment appended below).
 add_test(NAME venture_tests_jit_cache_alloc_checks COMMAND venture_tests "--source-file=*jit_cache_test.cpp" --duration=true)
 set_tests_properties(venture_tests_jit_cache_alloc_checks PROPERTIES COST 40)
