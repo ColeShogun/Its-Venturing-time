@@ -131,6 +131,15 @@ jobs:
             export VK_ICD_FILENAMES=\$VK_DRIVER_FILES &&
             ctest --test-dir build/linux-baseline -j 4 --timeout 900 --output-on-failure"
       # A test that crashes in native code under the JVM leaves its stack only in hs_err files.
+      # Job logs need repository admin rights to download. Annotations do not,
+      # so a failed public run stays diagnosable.
+      - name: Test failure details
+        if: failure() && inputs.test
+        shell: bash
+        run: |
+          log=$(find build -name LastTest.log -print -quit)
+          if [ -n "$log" ]; then python3 tools/ci/annotate_test_failures.py "$log"; fi
+
       - name: Crash reports
         if: failure() && inputs.test
         run: find build/linux-baseline -name 'hs_err_pid*.log' -exec sh -c 'echo "== $1"; sed -n "1,120p" "$1"' _ {} \;

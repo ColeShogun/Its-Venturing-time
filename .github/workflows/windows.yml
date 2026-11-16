@@ -144,6 +144,15 @@ jobs:
           Set-ItemProperty $key ActiveRuntime "$pwd\build\windows-release\bin\mock_openxr_runtime.json"
           .deps/cmake/bin/ctest --preset windows-release -E '^xr_missing_runtime$' -j 4 --timeout 900 --output-on-failure
 
+      # Job logs need repository admin rights to download. Annotations do not,
+      # so a failed public run stays diagnosable.
+      - name: Test failure details
+        if: failure() && inputs.test
+        shell: bash
+        run: |
+          log=$(find build -name LastTest.log -print -quit)
+          if [ -n "$log" ]; then python3 tools/ci/annotate_test_failures.py "$log"; fi
+
       - name: Package (zip and installer)
         if: inputs.package
         run: |
