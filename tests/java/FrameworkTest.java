@@ -3893,8 +3893,10 @@ public final class FrameworkTest {
     // frames continue that display grid and clock; frame times never decrease,
     // and a pulse landing on the interval a fallback frame served runs its
     // callbacks at the next interval. A long period keeps the wall-clock margins
-    // far above scheduler jitter.
-    final long period = 200_000_000L, lead = 500_000_000L;
+    // far above scheduler jitter: the pulse armed three quarters of a period into
+    // an interval has only the last quarter to beat the next fallback frame, and a
+    // busy CI host runs that handler tens of milliseconds late.
+    final long period = 1_000_000_000L, lead = period * 5 / 2;
     HandlerThread thread = new HandlerThread("choreographer-clock-test");
     thread.start();
     Handler handler = new Handler(thread.getLooper());
@@ -3921,7 +3923,7 @@ public final class FrameworkTest {
           }, period * 3 / 4 / 1_000_000);
       }
     }));
-    boolean finished = done.await(10, TimeUnit.SECONDS);
+    boolean finished = done.await(30, TimeUnit.SECONDS);
     thread.quitSafely();
     thread.join(3000);
     check(finished, "Choreographer frames continue across paused and resumed XR pulses " + times);
