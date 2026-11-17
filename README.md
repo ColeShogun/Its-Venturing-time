@@ -1,114 +1,25 @@
-This a fork
-<div align="center">
+> A fork of [Venture](https://github.com/Villagers654/Venture) — a Meta Quest emulator for PC VR.
 
-<img src="docs/media/logo.svg" width="72" alt="">
+This fork removes Meta sign in requirement. This fork uses AI
 
-# Venture
+*(See `git log` for full commit-level history.)*
 
-**A Meta Quest emulator for PC VR.**
-
-Play the Meta Quest games you own on your PC headset, at full PC speed and resolution.<br>
-No virtual machine. Free and open source.
-
-[**Download**](https://github.com/Villagers654/Venture/releases/latest) · [Website](https://venture-emu.org/) · [Report an issue](https://github.com/Villagers654/Venture/issues) · [Discord](https://discord.gg/Ey9hHszvwa)
-
-<a href="https://ko-fi.com/Villagers654"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support on Ko-fi"></a>
-
-<img src="docs/media/launcher.webp" width="760" alt="The Venture launcher: game library, a download in progress and Batman: Arkham Shadow ready to play">
-
-</div>
-
-## Why Venture
-
-- **Fast.** Venture is by far the fastest way to play Quest games on PC, with steady frame times.
-- **Compatible.** Runs all 25 games we tested; see the [compatibility wiki](https://github.com/Villagers654/Venture/wiki/Compatibility). The next best runs 7.
-- **Straight to your hardware.** Every game runs as an ordinary PC process that renders on your GPU and talks to your headset through OpenXR.
-- **Simple.** Sign in with Meta, install, press Play. Your games can show up in your Steam library too.
-
-<img src="docs/media/perf.jpg" alt="Average fps in seven games: Venture is faster in every one">
-
-<img src="docs/media/lows.jpg" alt="1% low fps in seven games: Venture is faster in every one">
-
-<img src="docs/media/compat.jpg" alt="Venture runs all 25 games tested; the next best runs 7">
-
-### Install and play
-
-1. Download `Venture-windows64-setup.exe` from [Releases](https://github.com/Villagers654/Venture/releases/latest) and run it.
-   On Linux, install the package for your distribution (`.deb`, `.rpm`, AUR `venture-bin`, AppImage or Flatpak), or extract the `.tar.gz` anywhere.
-2. Start Venture and choose Sign in with Meta and use the account that owns your Quest games.
-   If Meta's sign-in window doesn't open, or you'd rather use your own browser, choose **Sign in manually** under it.
-3. Pick a game in your library and choose **Install**.
-4. Start your headset's runtime, then choose **Play**.
-
-### Games from somewhere else
-
-The **Import** page adds games that aren't in your Meta library:
-
-- **From a headset:** connect a Quest with developer mode on (USB, or Wi-Fi debugging) and choose **Scan headset**. Nothing on the headset is changed.
-- **From this computer:** choose or drop an APK, a ZIP, or a folder with the APK and its data.
-
-### Play from Steam
-
-Turn on **Add games to Steam** in Settings. Installed games appear in Steam and SteamVR the next time Steam starts.
-
-### Mods
-
-Mods that replace a game's expansion file (OBB), such as RE4 VR Definitive Edition, go in the game's mods folder: open the game in your library and choose **Open folder** next to **Mods**, then put the mod's file there under the same name as the installed file (for example `main.203.com.Armature.VR4.obb`). It is used from the next launch; your installation is not changed, and deleting the file goes back to the original.
-
-### Mixed reality (passthrough)
-
-Games that use Quest passthrough show your surroundings when your VR runtime or
-headset can: through the runtime's own passthrough (`XR_FB_passthrough` or
-`XR_HTC_passthrough`), its see-through blend mode, the headset's cameras through
-SteamVR, or (for now) the Steam Link native passthrough companion. A color key
-for streaming tools that key a color can be chosen instead. It is on by default;
-**Settings → Runtime → Passthrough (mixed reality)** keeps every game in VR. See [Mixed Reality](https://github.com/Villagers654/Venture/wiki/Mixed-Reality) on the wiki for known setups.
-
-### Something wrong?
-
-If a game crashes, click **Report issue** on the banner that appears. Otherwise, use **Upload debug report** in Settings. Either way, Venture collects the launcher and game logs from your last launch into one debug report, uploads it as an unlisted paste that expires after 90 days, and gives you a link to copy. If the upload fails, attach the report file instead (**Show file**). The report starts with what happened in the last run and its likely cause; `venture-cli report [GAME] --upload` writes the same from a terminal.
-
-[Open an issue](https://github.com/Villagers654/Venture/issues/new/choose) with the game, what happened, how to make it happen again and the debug report link. To watch a game's output live, turn on **Show runtime console** in Settings. For help or to chat, join the [Discord](https://discord.gg/Ey9hHszvwa).
-
-### Build (Windows)
-
-```sh
-python tools/bootstrap.py --jdk --angle      # pinned toolchain, JDK and ANGLE into .deps/
-.deps/cmake/bin/cmake --preset windows-release
-.deps/cmake/bin/cmake --build --preset windows-release
-```
-
-### Build (Linux)
-
-```sh
-python3 tools/bootstrap.py --jdk             # pinned CMake, Ninja and JDK into .deps/
-.deps/cmake/bin/cmake --preset linux-release
-.deps/cmake/bin/cmake --build --preset linux-release
-```
+---
 
 ## License
 
-Venture is licensed under GPL-3.0-or-later: see [LICENSE](LICENSE).
+This project is licensed under **GPL-3.0-or-later**, same as upstream Venture — see [LICENSE](LICENSE).
 
-It's built on other people's work, and we're grateful for it. Code from these projects is used under their own licenses, kept in [LICENSES/](LICENSES):
+It's built on Venture, which is itself built on other people's work. Code from these projects is used under their own licenses, kept in [LICENSES/](LICENSES/):
 
 | License | Whose code |
 |---|---|
-| [GPL-3.0-or-later](LICENSE) | [Eden](https://eden-emu.dev/)'s fork of Dynarmic, by the Eden Emulator Project |
-| [0BSD](LICENSES/0BSD.txt) | [Dynarmic](https://github.com/merryhime/dynarmic), by merryhime (MerryMage) and its contributors |
-| [MIT](LICENSES/MIT.txt) | [musl](https://musl.libc.org/), by Rich Felker et al. |
-| [LGPL-2.1](LICENSES/LGPL-2.1.txt) | [FFmpeg](https://ffmpeg.org/), by the FFmpeg developers |
+| GPL-3.0-or-later | Original [Venture](https://github.com/Villagers654/Venture) code, by Villagers654 and contributors |
+| GPL-3.0-or-later | [Eden](https://eden-emu.dev/)'s fork of Dynarmic, by the Eden Emulator Project |
+| 0BSD | [Dynarmic](https://github.com/merryhime/dynarmic), by merryhime (MerryMage) and contributors |
+| MIT | [musl](https://musl.libc.org/), by Rich Felker et al. |
+| LGPL-2.1 | [FFmpeg](https://ffmpeg.org/), by the FFmpeg developers |
 
-Thank you to the Eden Emulator Project, whose Dynarmic fork Venture's JIT is built on; to merryhime and everyone who has worked on Dynarmic, which made a fast, accurate ARM JIT possible; and to the emulator projects it grew up with and borrows from, yuzu, Citra and Dolphin (Gekko). Thank you also to AXRB for pioneering Quest emulation on PC VR.
+Thank you to the Villagers654 and the Venture project for the original work this fork builds on, and to everyone credited in their [README](https://github.com/Villagers654/Venture#readme) for the projects Venture itself depends on.
 
-Venture is not affiliated with Meta; see [DISCLAIMER.md](DISCLAIMER.md).
-
-## Star history
-
-<a href="https://www.star-history.com/?type=date&repos=Villagers654%2FVenture">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Villagers654/Venture&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Villagers654/Venture&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Villagers654/Venture&type=date&legend=top-left" />
- </picture>
-</a>
+This project is not affiliated with Meta; see [DISCLAIMER.md](DISCLAIMER.md).
